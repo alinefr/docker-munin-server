@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+s6-echo "Starting crond"
+
+exec -c
+/usr/sbin/crond -f -L /dev/stderr

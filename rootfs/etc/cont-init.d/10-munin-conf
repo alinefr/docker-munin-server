@@ -1,0 +1,58 @@
+#!/usr/bin/with-contenv bash
+
+NODES=${NODES:-}
+SNMP_NODES=${SNMP_NODES:-}
+SSH_NODES=${SSH_NODES:-}
+
+# Clean existing configs
+rm -f /etc/munin/munin-conf.d/*
+
+# generate node list
+for NODE in $NODES; do
+    NAME=`echo $NODE | cut -d ":" -f1`
+    HOST=`echo $NODE | cut -d ":" -f2`
+    PORT=`echo $NODE | cut -d ":" -f3`
+    if [ ${#PORT} -eq 0 ]; then
+        PORT=4949
+    fi
+    cat << EOF >> /etc/munin/munin-conf.d/$NAME
+[$NAME]
+    address $HOST
+    use_node_name yes
+    port $PORT
+EOF
+    echo "Added node '$NAME' '$HOST'"
+done
+
+# generate node list
+for NODE in $SNMP_NODES; do
+    NAME=`echo $NODE | cut -d ":" -f1`
+    HOST=`echo $NODE | cut -d ":" -f2`
+    PORT=`echo $NODE | cut -d ":" -f3`
+    if [ ${#PORT} -eq 0 ]; then
+        PORT=4949
+    fi
+    cat << EOF >> /etc/munin/munin-conf.d/$NAME 
+[$NAME]
+    address $HOST
+    use_node_name no
+    port $PORT
+EOF
+    echo "Added SNMP node '$NAME' '$HOST'"
+done
+
+for SSH_NODE in $SSH_NODES; do
+    NAME=`echo $SSH_NODE | cut -d ":" -f1`
+    HOST=`echo $SSH_NODE | cut -d ":" -f2`
+    PORT=`echo $SSH_NODE | cut -d ":" -f3`
+    if [ ${#PORT} -eq 0 ]; then
+        PORT=4949
+    fi
+    cat << EOF >> /etc/munin/munin-conf.d/$NAME
+[$NAME]
+    address ssh://$HOST/usr/bin/nc localhost 4949
+    use_node_name yes
+    port $PORT
+EOF
+    echo "Added SSH node '$NAME' '$HOST'"
+done

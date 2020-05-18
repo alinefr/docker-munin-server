@@ -1,0 +1,64 @@
+#!/usr/bin/with-contenv bash
+
+SMTP_USE_TLS=${SMTP_USE_TLS:-false}
+SMTP_ALWAYS_SEND=${SMTP_ALWAYS_SEND:-true}
+
+MSMTP_CONFIG="/etc/msmtprc"
+MUNIN_SMTP_CONFIG="/etc/munin/munin-conf.d/munin-notification-settings"
+SMTP_MESSAGE_DEFAULT='Subject: Munin Alert for ${var:group} :: ${var:host}\r\n\r\n[${var:group};${var:host}] -> ${var:graph_title} -> warnings: ${loop<,>:wfields  ${var:label}=${var:value}} / criticals: ${loop<,>:cfields  ${var:label}=${var:value}}'
+SMTP_MESSAGE="${SMTP_MESSAGE:-$SMTP_MESSAGE_DEFAULT}"
+
+# Create base MSMTP configuration
+cat > $MSMTP_CONFIG << EOF
+defaults
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+syslog off
+logfile /dev/stdout
+
+EOF
+
+# Clear munin notification config
+if [ -f "${MUNIN_SMTP_CONFIG}" ]; then
+	rm -f ${MUNIN_SMTP_CONFIG}
+fi
+
+# Check to see if recipient is specified
+if [ ! -n "${ALERT_RECIPIENT}" ]; then
+	s6-echo "WARNING: No ALERT_RECIPIENT set up. Not configuring E-Mail Alerting"
+	exit 1
+fi
+
+# Check to see if sender is specified
+if [ ! -n "${ALERT_SENDER}" ]; then
+	s6-echo "ERROR: An ALERT_SENDER is required to set up E-Mail Alerting."
+	exit 1
+fi
+
+# Check to see if SMTP host is specified
+if [ ! -n "${SMTP_HOST}" ]; then
+	s6-echo "ERROR: An SMTP_HOST is required to set up E-Mail Alerting."
+	exit 1;
+fi
+
+# Configure munin
+echo "contact.mail.command printf '${SMTP_MESSAGE}' | msmtp ${ALERT_RECIPIENT}" > $MUNIN_SMTP_CONFIG
+if [ "${SMTP_ALWAYS_SEND}" = true ] ; then 
+	echo 'contact.mail.always_send warning critical' >> $MUNIN_SMTP_CONFIG
+fi
+
+# Configure msmtp
+echo "account default" >> $MSMTP_CONFIG
+echo "host ${SMTP_HOST}" >> $MSMTP_CONFIG
+echo "from ${ALERT_SENDER}" >> $MSMTP_CONFIG
+if [ -n "${SMTP_USE_TLS}" ]; then
+	echo "tls on" >> $MSMTP_CONFIG
+fi
+if [ -n "${SMTP_PORT}" ]; then
+	echo "port ${SMTP_PORT}" >> $MSMTP_CONFIG
+fi
+if [ -n "${SMTP_USERNAME}" -a -n "${SMTP_PASSWORD}" ]; then
+	echo "auth on" >> $MSMTP_CONFIG
+	echo "user ${SMTP_USERNAME}" >> $MSMTP_CONFIG
+	echo "password ${SMTP_PASSWORD}" >> $MSMTP_CONFIG
+fi
+

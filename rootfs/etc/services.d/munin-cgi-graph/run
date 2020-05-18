@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+s6-echo "Starting munin-cgi-graph"
+
+while [ ! -f /var/lib/munin/datafile ]; do
+    sleep 1
+done
+
+spawn-fcgi -n -s /run/munin-cgi-graph.sock -U nginx -u munin -g munin /usr/share/webapps/munin/cgi/munin-cgi-graph 

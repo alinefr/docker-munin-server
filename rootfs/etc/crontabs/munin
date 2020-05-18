@@ -1,0 +1,5 @@
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=
+
+@reboot		if [ -x /usr/bin/munin-cron ]; then /usr/bin/munin-cron; fi
+*/5 * * * *	if [ -x /usr/bin/munin-cron ]; then /usr/bin/munin-cron; fi

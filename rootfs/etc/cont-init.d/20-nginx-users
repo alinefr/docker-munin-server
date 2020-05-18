@@ -1,0 +1,23 @@
+#!/usr/bin/with-contenv bash
+
+# Clear the users configuration 
+echo -n > /etc/munin/munin-nginx-auth.conf
+
+# Remove and regenerate the Munin auth username/password file
+if [ -f "/etc/munin/munin-nginx-users" ]; then
+	rm -f /etc/munin/munin-nginx-users
+fi
+
+ARR_USERS=($MUNIN_USERS)
+ARR_PASSWORDS=($MUNIN_PASSWORDS)
+uc=0
+for u in "${ARR_USERS[@]}"; do
+  printf "${u}:`openssl passwd -apr1 ${ARR_PASSWORDS[uc]}`\n" >> /etc/munin/munin-nginx-users 
+  (( uc++ ))
+done
+
+# Users were created - enable authetncaition in the nginx file
+if [ -f /etc/munin/munin-nginx-users ]; then
+    echo 'auth_basic "Munin Server";' >> /etc/munin/munin-nginx-auth.conf
+    echo 'auth_basic_user_file "/etc/munin/htpasswd.users";' >> /etc/munin/munin-nginx-auth.conf
+fi
