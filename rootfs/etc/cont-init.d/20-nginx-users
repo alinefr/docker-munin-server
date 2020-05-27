@@ -19,5 +19,5 @@ done
 # Users were created - enable authetncaition in the nginx file
 if [ -f /etc/munin/munin-nginx-users ]; then
     echo 'auth_basic "Munin Server";' >> /etc/munin/munin-nginx-auth.conf
-    echo 'auth_basic_user_file "/etc/munin/htpasswd.users";' >> /etc/munin/munin-nginx-auth.conf
+    echo 'auth_basic_user_file "/etc/munin/munin-nginx-users";' >> /etc/munin/munin-nginx-auth.conf
 fi
