@@ -28,3 +28,7 @@ contact.munin_for_android.text  <alert group="${var:group}" host="${var:host}"\
     w="${var:wrange}" c="${var:crange}" extra="${var:extinfo}" /> }\
   </alert>
 EOF
+
+if [ -n "$ANDROID_ALWAYS_TRIGGER" ]; then
+  echo 'contact.munin_for_android.always_send warning critical' >> /etc/munin/munin.conf.d/gcm-trigger.conf
+fi
