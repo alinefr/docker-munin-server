@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ -z "$ANDROID_DEVICES" ]; then
+  echo "ANDROID_DEVICES not set"
+  exit 0
+fi
+
+if [ ! -d /opt/gcm-trigger ]; then
+  git clone https://github.com/chteuchteu/Munin-for-Android-GCM-Trigger.git /opt/gcm-trigger
+fi
+
+chmod 755 /usr/local/bin/generate_devices.py
+/usr/local/bin/generate_devices.py
