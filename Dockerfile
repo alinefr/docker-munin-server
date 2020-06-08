@@ -27,7 +27,7 @@ ARG ARCH
 RUN apk upgrade --no-cache
 
 # Install APK Packages 
-RUN apk add --no-cache jq curl nginx munin spawn-fcgi perl-cgi-fast logrotate ttf-dejavu openssl bash ca-certificates msmtp py3-requests
+RUN apk add --no-cache jq curl nginx munin spawn-fcgi perl-cgi-fast logrotate ttf-dejavu openssl bash ca-certificates msmtp py3-requests git
 
 # Set shell to bash
 RUN sed -e 's;/bin/ash$;/bin/bash;g' -i /etc/passwd
